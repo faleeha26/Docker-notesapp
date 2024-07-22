@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: FDKferoih2353@@40++.
+      MYSQL_DATABASE: blog_db
+      MYSQL_USER: blog_user
+      MYSQL_PASSWORD: your_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - internal
+
+  app:
+    build:
+      context: .
+      dockerfile: myproject/Dockerfile
+    restart: always
+      # volumes:    #added to test
+      #- .:/app
+      #- myproject-sock:/app/myproject.sock
+    depends_on:
+      - db
+    environment:
+      FLASK_APP: wsgi.py
+      FLASK_ENV: development
+      DATABASE_USER: blog_user
+      DATABASE_PASSWORD: your_password
+      DATABASE_HOST: mariadb
+      DATABASE_NAME: blog_db
+      
+      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://blog_user:your_password@db/blog_db"
+    networks:
+      - internal
+      - external
+    ports:
+      - "5000:5000"
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: always
+      # volumes:    #added to test
+      #- .:/app
+      #- myproject-sock:/app/myproject.sock
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    networks:
+      - external
+
+networks:
+  internal:
+  external:
+
+volumes:
+  # myproject-sock:
+  db_data:
+
